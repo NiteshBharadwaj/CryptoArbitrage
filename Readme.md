@@ -1,4 +1,4 @@
-# A simple python server to find arbitrage among cryptos and fiat
+# A simple python server to find arbitrage among cryptos and fiat real-time
 
 Uses Bellman-Ford to detect negative cycles in -log(W_ij) graph and if there is a negative cycle, there is arbitrage. W_ij is the cost of currency i in terms of currency j.
 
@@ -13,7 +13,7 @@ NOTE: requirements is auto-generated for my current freeze.
 
 ```python arbitrage_server.py```
 
-Arbitrage opportunity published on http://localhost:5000/arbitrage and current price matrix is published on http://localhost:5000/price_matrix
+Latest arbitrage opportunity published on http://localhost:5000/arbitrage and current price matrix is published on http://localhost:5000/price_matrix
 
 #### Sample outputs:
 
