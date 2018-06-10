@@ -10,7 +10,7 @@ import time
 app = Flask(__name__)
 api = Api(app)
 
-
+# Restricting our universe
 coins = ['BTC','LTC','ETH','REQ','NEO']
 fiat = ['USD', 'EUR', 'SGD', 'GBP']
 
@@ -20,6 +20,7 @@ for c in coins:
 for c in fiat:
 	ccys.append(c);
 
+# Initial dummy data for testing purposes
 price_matrix_json = {'BTC': {'BTC': 1, 'LTC': 63.82, 'ETH': 12.77, 'REQ': 61162.08, 'NEO': 145.75, 'USD': 7652.88, 'EUR': 6501.76, 'SGD': 10835.86, 'GBP': 5669.05}, 'LTC': {'BTC': 0.01567, 'LTC': 1, 'ETH': 0.2001, 'REQ': 958.41, 'NEO': 2.28, 'USD': 119.78, 'EUR': 102.1, 'SGD': 169.8, 'GBP': 88.83}, 'ETH': {'BTC': 0.07832, 'LTC': 5, 'ETH': 1, 'REQ': 4790.21, 'NEO': 11.42, 'USD': 596.65, 'EUR': 506.79, 'SGD': 848.66, 'GBP': 444}, 'REQ': {'BTC': 1.635e-05, 'LTC': 0.001043, 'ETH': 0.0002088, 'REQ': 1, 'NEO': 0.002383, 'USD': 0.1251, 'EUR': 0.1063, 'SGD': 0.1772, 'GBP': 0.09318}, 'NEO': {'BTC': 0.006861, 'LTC': 0.4378, 'ETH': 0.0876, 'REQ': 419.63, 'NEO': 1, 'USD': 52.55, 'EUR': 44.62, 'SGD': 74.34, 'GBP': 39.1}, 'USD': {'BTC': 0.0001307, 'LTC': 0.00835, 'ETH': 0.001676, 'REQ': 7.99, 'NEO': 0.01903, 'USD': 1, 'EUR': 0.8475, 'SGD': 1.42, 'GBP': 0.7446}, 'EUR': {'BTC': 0.0001537, 'LTC': 0.009794, 'ETH': 0.001972, 'REQ': 9.4, 'NEO': 0.02241, 'USD': 1.18, 'EUR': 1, 'SGD': 1.67, 'GBP': 0.8763}, 'SGD': {'BTC': 9.229e-05, 'LTC': 0.005889, 'ETH': 0.001178, 'REQ': 5.64, 'NEO': 0.01344, 'USD': 0.7062, 'EUR': 0.6002, 'SGD': 1, 'GBP': 0.5259}, 'GBP': {'BTC': 0.0001755, 'LTC': 0.0112, 'ETH': 0.00224, 'REQ': 10.73, 'NEO': 0.02556, 'USD': 1.34, 'EUR': 1.14, 'SGD': 1.9, 'GBP': 1}}
 
 
@@ -29,15 +30,13 @@ for c1 in ccys:
 	for c2 in ccys:
 		c1x.append(price_matrix_json[c1][c2])
 	price_matrix.append(c1x)
+	
+# Class to publish price_matrix upon get requests
 class Price_Matrix(Resource):
 	def get(self):
 		return price_matrix_json
-	
-	def post(self):
-		conn = db_connect.connect()
-		print(request.json)
-		return {'status':'success'}
 
+# Fetch data from crypto compare
 import time
 def price(symbol, comparison_symbols=['USD'], exchange=''):
 	url = 'https://min-api.cryptocompare.com/data/price?fsym={}&tsyms={}'\
@@ -63,6 +62,7 @@ def price_matrix_downloader():
 
 
 import threading
+# Background thread to continously fetch prices
 def start_downloading_price_matrix(inp):
 	download_thread = threading.Thread(target=price_matrix_downloader, args=inp)
 	download_thread.start()
@@ -117,6 +117,7 @@ def bellmanFord(src,pm_nmp):
 	else:
 		return None
 
+# Run bellman ford with different start points. Since it is fully connected, running from one src is just fine
 arbitrage_opportunities = {}
 def arbitrageFinder():
 	while True:
@@ -141,10 +142,12 @@ def arbitrageFinder():
 				myRes['Profit_USD'] = usdamt
 				arbitrage_opportunities[0] = myRes
 				break;
+# Background thread that continously finds arbitrage on the current price matrix
 def find_arbitrage(inp):
 	download_thread = threading.Thread(target=arbitrageFinder, args=inp)
 	download_thread.start()
 
+# Class to publish arbitrage upon get requests
 class Arbitrage(Resource):
 	def get(self):
 		return arbitrage_opportunities
@@ -152,7 +155,6 @@ api.add_resource(Price_Matrix, '/price_matrix') # Route_1
 api.add_resource(Arbitrage, '/arbitrage') # Route_1
 start_downloading_price_matrix([])
 find_arbitrage([])
-#arbitrageFinder()
 
 if __name__ == '__main__':
 	app.run()
